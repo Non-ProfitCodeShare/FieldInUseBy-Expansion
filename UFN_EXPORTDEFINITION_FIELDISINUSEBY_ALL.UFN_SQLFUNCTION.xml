@@ -1,0 +1,32 @@
+﻿<SQLFunctionSpec
+	xmlns="bb_appfx_sqlfunction"
+	xmlns:c="bb_appfx_commontypes" 
+	ID="26d6418d-5a56-4152-83f4-80087de4d372"
+	Name="DH - SF - USR_UFN_EXPORTDEFINITION_FIELDISINUSEBY_ALL"
+	Description="DH - SF - Returns all exportdefinitions where a smartfield is used"
+	Author="Dignity Health"
+	DBFunctionName="USR_UFN_EXPORTDEFINITION_FIELDISINUSEBY_ALL"
+	>
+
+	<CreateFunctionSQL>
+		<![CDATA[
+create function dbo.USR_UFN_EXPORTDEFINITION_FIELDISINUSEBY_ALL(@OBJECTNAME nvarchar(128))
+returns nvarchar(4000)
+with execute as caller
+as begin
+  declare @RETURNVALUE nvarchar(4000);
+				     set @returnvalue = N'';
+
+  select 
+    @RETURNVALUE = @RETURNVALUE + '; ' + [EXPORTDEFINITION].[NAME]
+  from dbo.[EXPORTDEFINITION]
+  where exists ((select 1 
+    from EXPORTDEFINITIONXML.nodes('//n[@ObjectName]') as T(c)
+    where (T.c.value('@ObjectName', 'nvarchar(max)') = isnull(@OBJECTNAME, ''))));
+
+  return @RETURNVALUE
+end
+		]]>
+	</CreateFunctionSQL>
+
+</SQLFunctionSpec>

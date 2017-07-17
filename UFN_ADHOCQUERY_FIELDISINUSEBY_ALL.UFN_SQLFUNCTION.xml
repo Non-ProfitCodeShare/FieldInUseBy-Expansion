@@ -1,0 +1,36 @@
+﻿<SQLFunctionSpec
+	xmlns="bb_appfx_sqlfunction"
+	xmlns:c="bb_appfx_commontypes" 
+	ID="141e9eb9-c9f3-40a1-9873-39c45c211a01"
+	Name="DH - SF - USR_UFN_ADHOCQUERY_FIELDISINUSEBY_ALL"
+	Description="DH - SF - Returns all queries where a smartfield is used"
+	Author="Dignity Health"
+	DBFunctionName="USR_UFN_ADHOCQUERY_FIELDISINUSEBY_ALL"
+	>
+
+	<CreateFunctionSQL>
+		<![CDATA[
+create function dbo.USR_UFN_ADHOCQUERY_FIELDISINUSEBY_ALL(@OBJECTNAME nvarchar(255), @FIELDNAME nvarchar(255))
+returns nvarchar(4000)
+with execute as caller
+as begin
+				declare @RETURNVALUE nvarchar(4000);
+				     set @returnvalue = N'';
+
+					with xmlnamespaces ('Blackbaud.AppFx.WebService.API.1' as [ns])
+					select @RETURNVALUE = @RETURNVALUE + '; ' + ADHOCQUERY.NAME
+					from dbo.ADHOCQUERY
+					where exists ((select T.c.value('@ColumnName', 'nvarchar(255)') 
+						from QUERYDEFINITIONXML.nodes('ns:AdHocQuery/*/ns:f[@ColumnName]') as T(c)
+						where T.c.value('@ObjectName', 'nvarchar(255)') = @OBJECTNAME
+							and ((@FIELDNAME = '') or (T.c.value('@ColumnName', 'nvarchar(255)') = @FIELDNAME))));
+
+--				if @RETURNVALUE is null set @RETURNVALUE = '';
+
+				return @RETURNVALUE;
+	return ''
+end
+		]]>
+	</CreateFunctionSQL>
+
+</SQLFunctionSpec>
